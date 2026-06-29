@@ -8,7 +8,10 @@ import TravelBills from "./TravelBills";
 import ExpenseBills from "./ExpenseBills";
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  // We use useMemo or just extract the primitive ID to avoid infinite loops
+  const userString = localStorage.getItem("user");
+  const user = userString ? JSON.parse(userString) : null;
+  const userId = user?.userId;
   
   const [page, setPage] = useState("dashboard");
   const [showBills, setShowBills] = useState(false);
@@ -17,7 +20,6 @@ function Dashboard() {
   const [editExpenseData, setEditExpenseData] = useState(null);
   const [editTravelData, setEditTravelData] = useState(null);
 
-  // State to hold the 4 dashboard metrics
   const [stats, setStats] = useState({
     travelCount: 0,
     expenseCount: 0,
@@ -27,24 +29,23 @@ function Dashboard() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch data when dashboard loads
+  // FIX: Using 'userId' (a primitive) instead of 'user' (an object) stops the infinite loop!
   useEffect(() => {
-    if (page === "dashboard" && user?.userId) {
+    if (page === "dashboard" && userId) {
       fetchDashboardStats();
     }
-  }, [page, user]);
+  }, [page, userId]);
 
   const fetchDashboardStats = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append("userId", user.userId);
+      params.append("userId", userId);
 
       const config = {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       };
 
-      // Fetching all 4 APIs simultaneously for better performance
       const [tCount, eCount, tAmount, eAmount] = await Promise.all([
         axios.post("https://billify-backtend.onrender.com/totaltavelbillcount", params, config),
         axios.post("https://billify-backtend.onrender.com/totalexpensebillcount", params, config),
@@ -84,12 +85,11 @@ function Dashboard() {
     setIsMenuOpen(false);
   };
 
-  // Logout Function
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
       localStorage.removeItem("user");
-      window.location.href = "/"; // Eta apnar login page er route hisabe adjust kore neben (e.g., "/login")
+      window.location.href = "/"; 
     }
   };
 
@@ -112,7 +112,6 @@ function Dashboard() {
             position: relative;
           }
 
-          /* --- Mobile Header --- */
           .mobile-header {
             display: none;
             width: 100%;
@@ -134,7 +133,6 @@ function Dashboard() {
             cursor: pointer;
           }
 
-          /* --- Sidebar --- */
           .sidebar{
             width:280px;
             background:#0f172a;
@@ -181,7 +179,6 @@ function Dashboard() {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
           }
 
-          /* --- Content Area --- */
           .content{
             flex:1;
             padding:40px;
@@ -192,7 +189,6 @@ function Dashboard() {
             flex-direction: column;
           }
 
-          /* Top Bar with Logout */
           .top-bar {
             display: flex;
             justify-content: flex-end;
@@ -234,7 +230,6 @@ function Dashboard() {
             color:#94a3b8;
           }
 
-          /* 4 Cards Grid */
           .cards{
             display:grid;
             grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
@@ -262,7 +257,6 @@ function Dashboard() {
             font-size: 28px;
           }
 
-          /* Overlay for mobile */
           .overlay {
             display: none;
             position: fixed;
@@ -272,21 +266,17 @@ function Dashboard() {
             backdrop-filter: blur(4px);
           }
 
-          /* --- Mobile Responsiveness --- */
           @media(max-width:768px){
             .dashboard{
               flex-direction:column;
             }
-            
             .content {
               height: auto;
               padding: 20px;
             }
-
             .mobile-header {
               display: flex;
             }
-
             .sidebar {
               position: fixed;
               top: 0;
@@ -294,12 +284,10 @@ function Dashboard() {
               height: 100vh;
               overflow-y: auto;
             }
-
             .sidebar.open {
               left: 0;
               box-shadow: 10px 0 30px rgba(0,0,0,0.5);
             }
-
             .overlay.show {
               display: block;
             }
@@ -307,118 +295,67 @@ function Dashboard() {
         `}
       </style>
 
-      {/* Mobile view te menu open korle pichone ekta blur overlay asbe */}
-      <div 
-        className={`overlay ${isMenuOpen ? "show" : ""}`} 
-        onClick={() => setIsMenuOpen(false)}
-      ></div>
+      <div className={`overlay ${isMenuOpen ? "show" : ""}`} onClick={() => setIsMenuOpen(false)}></div>
 
       <div className="dashboard">
         
-        {/* Mobile Header */}
         <div className="mobile-header">
           <h2 className="logo" style={{ marginBottom: 0 }}>
             Bill<span>ify</span>
           </h2>
-          <button 
-            className="hamburger-btn" 
-            onClick={() => setIsMenuOpen(true)}
-          >
-            ☰
-          </button>
+          <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>☰</button>
         </div>
 
-        {/* Sidebar (Slide-in mobile e) */}
         <div className={`sidebar ${isMenuOpen ? "open" : ""}`}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h2 className="logo">
-              Bill<span>ify</span>
-            </h2>
-            <button 
-              className="hamburger-btn" 
-              style={{ marginBottom: "40px" }}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              ✕
-            </button>
+            <h2 className="logo">Bill<span>ify</span></h2>
+            <button className="hamburger-btn" style={{ marginBottom: "40px" }} onClick={() => setIsMenuOpen(false)}>✕</button>
           </div>
 
           <div className="menu">
-            <button
-              className={page === "dashboard" ? "active-btn" : ""}
-              onClick={() => handleNavigation("dashboard")}
-            >
+            <button className={page === "dashboard" ? "active-btn" : ""} onClick={() => handleNavigation("dashboard")}>
               📊 Dashboard
             </button>
-
-            <button
-              className={page === "travel" ? "active-btn" : ""}
-              onClick={() => handleNavigation("travel")}
-            >
+            <button className={page === "travel" ? "active-btn" : ""} onClick={() => handleNavigation("travel")}>
               ✈️ Create Travel Bill
             </button>
-
-            <button
-              className={page === "expense" ? "active-btn" : ""}
-              onClick={() => handleNavigation("expense")}
-            >
+            <button className={page === "expense" ? "active-btn" : ""} onClick={() => handleNavigation("expense")}>
               💰 Create Expense Bill
             </button>
 
-            <button onClick={() => setShowBills(!showBills)}>
-              👁️ View Bills
-            </button>
+            <button onClick={() => setShowBills(!showBills)}>👁️ View Bills</button>
 
             {showBills && (
               <>
                 <button
                   className={page === "travelBills" ? "active-btn" : ""}
                   onClick={() => handleNavigation("travelBills")}
-                  style={{
-                    marginLeft: "20px",
-                    background: page === "travelBills" ? "" : "#374151",
-                  }}
+                  style={{ marginLeft: "20px", background: page === "travelBills" ? "" : "#374151" }}
                 >
                   ✈️ Travel Bills
                 </button>
-
                 <button
                   className={page === "expenseBills" ? "active-btn" : ""}
                   onClick={() => handleNavigation("expenseBills")}
-                  style={{
-                    marginLeft: "20px",
-                    background: page === "expenseBills" ? "" : "#374151",
-                  }}
+                  style={{ marginLeft: "20px", background: page === "expenseBills" ? "" : "#374151" }}
                 >
                   💰 Expense Bills
                 </button>
               </>
             )}
 
-            <button
-              className={page === "download" ? "active-btn" : ""}
-              onClick={() => handleNavigation("download")}
-            >
+            <button className={page === "download" ? "active-btn" : ""} onClick={() => handleNavigation("download")}>
               📄 Download Bill
             </button>
-
-            <button
-              className={page === "settings" ? "active-btn" : ""}
-              onClick={() => handleNavigation("settings")}
-            >
+            <button className={page === "settings" ? "active-btn" : ""} onClick={() => handleNavigation("settings")}>
               ⚙️ Settings
             </button>
           </div>
         </div>
 
-        {/* Main Content Area */}
         <div className="content">
-          
-          {/* Top Right Logout Button - Stays on all pages */}
           <div className="top-bar">
-            <button className="logout-btn" onClick={handleLogout}>
-              Logout 🚪
-            </button>
+            <button className="logout-btn" onClick={handleLogout}>Logout 🚪</button>
           </div>
 
           {page === "dashboard" && (
@@ -428,7 +365,6 @@ function Dashboard() {
                 <p>Manage your travel bills, expenses and reports from one place.</p>
               </div>
 
-              {/* 4 Professional Dashboard Cards */}
               <div className="cards">
                 <div className="card">
                   <h3>Travel Bills Submitted</h3>
@@ -450,14 +386,10 @@ function Dashboard() {
             </>
           )}
 
-          {/* Form component gulo te editData pass kora hochhe */}
           {page === "travel" && <TravelBillForm user={user} editData={editTravelData} />}
           {page === "expense" && <ExpenseBillForm user={user} editData={editExpenseData} />}
-
-          {/* List component gulo te onEdit pass kora hochhe */}
           {page === "travelBills" && <TravelBills user={user} onEdit={handleEditTravel} />}
           {page === "expenseBills" && <ExpenseBills user={user} onEdit={handleEditExpense} />}
-
           {page === "download" && <DownloadBill user={user} />}
           {page === "settings" && <Settings user={user} />}
         </div>
