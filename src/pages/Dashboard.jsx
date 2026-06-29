@@ -43,10 +43,10 @@ function Dashboard() {
 
       // Fetching all 4 APIs simultaneously for better performance
       const [tCount, eCount, tAmount, eAmount] = await Promise.all([
-        axios.post("http://localhost:6296/totaltavelbillcount", params, config),
-        axios.post("http://localhost:6296/totalexpensebillcount", params, config),
-        axios.post("http://localhost:6296/totaltavelbillamount", params, config),
-        axios.post("http://localhost:6296/totalexpensebillamount", params, config),
+        axios.post("https://billify-backtend.onrender.com/totaltavelbillcount", params, config),
+        axios.post("https://billify-backtend.onrender.com/totalexpensebillcount", params, config),
+        axios.post("https://billify-backtend.onrender.com/totaltavelbillamount", params, config),
+        axios.post("https://billify-backtend.onrender.com/totalexpensebillamount", params, config),
       ]);
 
       setStats({

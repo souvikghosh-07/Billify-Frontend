@@ -27,8 +27,8 @@ function DownloadBill({ user }) {
 
       const url =
         billType === "travel"
-          ? "http://localhost:6296/downloadtravelbill"
-          : "http://localhost:6296/downloadexpensebill";
+          ? "https://billify-backtend.onrender.com/downloadtravelbill"
+          : "https://billify-backtend.onrender.com/downloadexpensebill";
 
       const response = await axios.post(url, params, {
         headers: {

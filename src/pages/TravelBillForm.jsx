@@ -44,7 +44,7 @@ function TravelBillForm({ user, editData }) {
         params.append("travelBillId", editData.travelBillId);
 
         const response = await axios.put(
-          "http://localhost:6296/updatetravelbill",
+          "https://billify-backtend.onrender.com/updatetravelbill",
           params,
           {
             headers: {
@@ -58,7 +58,7 @@ function TravelBillForm({ user, editData }) {
       } else {
         // --- CREATE LOGIC ---
         const response = await axios.post(
-          "http://localhost:6296/addtravelbill",
+          "https://billify-backtend.onrender.com/addtravelbill",
           params,
           {
             headers: {

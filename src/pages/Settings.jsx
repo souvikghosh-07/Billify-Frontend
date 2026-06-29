@@ -39,7 +39,7 @@ function Settings({ user }) {
         // --- 2ND TIME: UPDATE LOGIC (PUT) ---
         params.append("CompanyDetailsId", company.companyDetailsId);
         
-        const response = await axios.put("http://localhost:6296/updatecompanydetails", params, {
+        const response = await axios.put("https://billify-backtend.onrender.com/updatecompanydetails", params, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
 
@@ -50,7 +50,7 @@ function Settings({ user }) {
         alert("Company Details Updated Successfully!");
       } else {
         // --- 1ST TIME: SAVE LOGIC (POST) ---
-        const response = await axios.post("http://localhost:6296/addcompanydetails", params, {
+        const response = await axios.post("https://billify-backtend.onrender.com/addcompanydetails", params, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
 

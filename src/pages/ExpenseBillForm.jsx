@@ -41,7 +41,7 @@ function ExpenseBillForm({ user, editData }) {
         params.append("expenseBillId", editData.expenseBillId);
 
         const response = await axios.put(
-          "http://localhost:6296/updateexpensebill",
+          "https://billify-backtend.onrender.com/updateexpensebill",
           params,
           {
             headers: {
@@ -56,7 +56,7 @@ function ExpenseBillForm({ user, editData }) {
       } else {
         // --- CREATE LOGIC ---
         const response = await axios.post(
-          "http://localhost:6296/expensebill",
+          "https://billify-backtend.onrender.com/expensebill",
           params,
           {
             headers: {

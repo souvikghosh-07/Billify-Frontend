@@ -14,7 +14,7 @@ function ExpenseBills({ user, onEdit }) {
       params.append("userId", user.userId);
 
       const response = await axios.post(
-        "http://localhost:6296/showexpensebill",
+        "https://billify-backtend.onrender.com/showexpensebill",
         params,
         {
           headers: {
@@ -35,7 +35,7 @@ function ExpenseBills({ user, onEdit }) {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete("http://localhost:6296/deleteexpensebill", {
+      await axios.delete("https://billify-backtend.onrender.com/deleteexpensebill", {
         params: { expenseBillId: expenseBillId }
       });
       

@@ -14,7 +14,7 @@ function TravelBills({ user, onEdit }) {
       params.append("userId", user.userId);
 
       const response = await axios.post(
-        "http://localhost:6296/showtravelbill",
+        "https://billify-backtend.onrender.com/showtravelbill",
         params,
         {
           headers: {
@@ -35,7 +35,7 @@ function TravelBills({ user, onEdit }) {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete("http://localhost:6296/deletetravelbill", {
+      await axios.delete("https://billify-backtend.onrender.com/deletetravelbill", {
         params: { travelBillId: travelBillId },
       });
 

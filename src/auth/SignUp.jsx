@@ -29,7 +29,7 @@ function SignUp() {
       params.append("password", formData.password);
 
       const response = await axios.post(
-        "http://localhost:6296/signup",
+        "https://billify-backtend.onrender.com/signup",
         params
       );
 
