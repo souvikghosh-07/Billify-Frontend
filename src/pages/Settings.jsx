@@ -3,6 +3,7 @@ import axios from "axios";
 
 function Settings({ user }) {
   const [activeTab, setActiveTab] = useState("profile");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Company Details State
   const [company, setCompany] = useState({
@@ -27,6 +28,8 @@ function Settings({ user }) {
       alert("Company ID and Name are required!");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const params = new URLSearchParams();
@@ -63,6 +66,8 @@ function Settings({ user }) {
     } catch (err) {
       console.log(err);
       alert("Failed to process request.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -207,8 +212,13 @@ function Settings({ user }) {
             background: linear-gradient(135deg, #eab308, #ca8a04);
           }
 
-          .submit-btn:hover {
+          .submit-btn:hover:not(:disabled) {
             transform: translateY(-2px);
+          }
+
+          .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
           }
 
           /* Text Sections */
@@ -330,8 +340,9 @@ function Settings({ user }) {
                 <button 
                   className={`submit-btn ${company.companyDetailsId ? 'update-btn' : ''}`} 
                   onClick={handleSaveCompany}
+                  disabled={isLoading}
                 >
-                  {company.companyDetailsId ? "Update Details" : "Save Details"}
+                  {isLoading ? "Processing..." : (company.companyDetailsId ? "Update Details" : "Save Details")}
                 </button>
               </div>
             )}

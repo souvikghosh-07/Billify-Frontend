@@ -10,6 +10,8 @@ function SignIn() {
     password: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -19,6 +21,7 @@ function SignIn() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const params = new URLSearchParams();
@@ -43,6 +46,8 @@ function SignIn() {
     } catch (error) {
       console.log(error);
       alert("Server Error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -169,8 +174,13 @@ function SignIn() {
             transition:.3s;
           }
 
-          .login-btn:hover{
+          .login-btn:hover:not(:disabled){
             transform:translateY(-2px);
+          }
+
+          .login-btn:disabled{
+            opacity: 0.7;
+            cursor: not-allowed;
           }
 
           .signup-text{
@@ -247,8 +257,9 @@ function SignIn() {
             <button
               type="submit"
               className="login-btn"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? "Processing..." : "Sign In"}
             </button>
           </form>
 

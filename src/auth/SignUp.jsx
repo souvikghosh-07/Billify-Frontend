@@ -11,6 +11,8 @@ function SignUp() {
     password: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -20,6 +22,7 @@ function SignUp() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const params = new URLSearchParams();
@@ -42,6 +45,8 @@ function SignUp() {
     } catch (error) {
       console.log(error);
       alert("Server Error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -168,8 +173,13 @@ function SignUp() {
             transition:.3s;
           }
 
-          .register-btn:hover{
+          .register-btn:hover:not(:disabled){
             transform:translateY(-2px);
+          }
+
+          .register-btn:disabled{
+            opacity: 0.7;
+            cursor: not-allowed;
           }
 
           .signin-text{
@@ -257,8 +267,9 @@ function SignUp() {
             <button
               type="submit"
               className="register-btn"
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading ? "Processing..." : "Create Account"}
             </button>
           </form>
 

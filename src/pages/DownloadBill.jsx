@@ -7,6 +7,7 @@ function DownloadBill({ user }) {
   const [billType, setBillType] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const downloadBill = async () => {
     if (billType === "") {
@@ -18,6 +19,8 @@ function DownloadBill({ user }) {
       alert("Select Date Range");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const params = new URLSearchParams();
@@ -40,6 +43,7 @@ function DownloadBill({ user }) {
 
       if (bills.length === 0) {
         alert("No Bills Found in this date range");
+        setIsLoading(false);
         return;
       }
 
@@ -173,6 +177,8 @@ function DownloadBill({ user }) {
     } catch (err) {
       console.log(err);
       alert("Download Failed. Please check console.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -274,8 +280,13 @@ function DownloadBill({ user }) {
             transition:.3s;
           }
 
-          .download-btn:hover{
+          .download-btn:hover:not(:disabled){
             transform:translateY(-2px);
+          }
+
+          .download-btn:disabled{
+            opacity: 0.7;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -318,8 +329,12 @@ function DownloadBill({ user }) {
             onChange={(e) => setDateTo(e.target.value)}
           />
 
-          <button className="download-btn" onClick={downloadBill}>
-            Download Professional PDF
+          <button 
+            className="download-btn" 
+            onClick={downloadBill}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Download Professional PDF"}
           </button>
         </div>
       </div>

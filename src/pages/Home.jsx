@@ -1,7 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
   const navigate = useNavigate();
+  const [loadingTarget, setLoadingTarget] = useState(null);
+
+  const handleNavigation = (path) => {
+    setLoadingTarget(path);
+    navigate(path);
+  };
 
   return (
     <>
@@ -94,9 +101,15 @@ function Home() {
             );
           }
 
-          .nav-btn:hover,
-          .hero-btn:hover{
+          .nav-btn:hover:not(:disabled),
+          .hero-btn:hover:not(:disabled){
             transform:translateY(-3px);
+          }
+
+          .nav-btn:disabled, 
+          .hero-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
           }
 
           .hero-section{
@@ -243,16 +256,18 @@ function Home() {
           <div className="nav-actions">
             <button
               className="nav-btn login"
-              onClick={() => navigate("/signin")}
+              onClick={() => handleNavigation("/signin")}
+              disabled={loadingTarget !== null}
             >
-              Sign In
+              {loadingTarget === "/signin" ? "Processing..." : "Sign In"}
             </button>
 
             <button
               className="nav-btn signup"
-              onClick={() => navigate("/signup")}
+              onClick={() => handleNavigation("/signup")}
+              disabled={loadingTarget !== null}
             >
-              Sign Up
+              {loadingTarget === "/signup" ? "Processing..." : "Sign Up"}
             </button>
           </div>
         </nav>
@@ -279,16 +294,18 @@ function Home() {
           <div className="hero-buttons">
             <button
               className="hero-btn primary"
-              onClick={() => navigate("/signup")}
+              onClick={() => handleNavigation("/signup")}
+              disabled={loadingTarget !== null}
             >
-              Get Started →
+              {loadingTarget === "/signup" ? "Processing..." : "Get Started →"}
             </button>
 
             <button
               className="hero-btn secondary"
-              onClick={() => navigate("/signin")}
+              onClick={() => handleNavigation("/signin")}
+              disabled={loadingTarget !== null}
             >
-              Sign In
+              {loadingTarget === "/signin" ? "Processing..." : "Sign In"}
             </button>
           </div>
 

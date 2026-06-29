@@ -9,6 +9,8 @@ function TravelBillForm({ user, editData }) {
     amount: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // Jokhon page load hobe ba editData asbe, form auto-fill hobe
   useEffect(() => {
     if (editData) {
@@ -30,6 +32,7 @@ function TravelBillForm({ user, editData }) {
   }, [editData]);
 
   const saveBill = async () => {
+    setIsLoading(true);
     try {
       const params = new URLSearchParams();
 
@@ -83,6 +86,8 @@ function TravelBillForm({ user, editData }) {
       console.log(err);
 
       alert(editData ? "Failed to Update Travel Bill" : "Failed to Add Travel Bill");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -149,8 +154,13 @@ function TravelBillForm({ user, editData }) {
             transition:.3s;
           }
 
-          .travel-btn:hover{
+          .travel-btn:hover:not(:disabled){
             transform:translateY(-2px);
+          }
+
+          .travel-btn:disabled{
+            opacity: 0.7;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -200,8 +210,12 @@ function TravelBillForm({ user, editData }) {
             }
           />
 
-          <button className="travel-btn" onClick={saveBill}>
-            {editData ? "Update Travel Bill" : "Add Travel Bill"}
+          <button 
+            className="travel-btn" 
+            onClick={saveBill}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : (editData ? "Update Travel Bill" : "Add Travel Bill")}
           </button>
         </div>
       </div>

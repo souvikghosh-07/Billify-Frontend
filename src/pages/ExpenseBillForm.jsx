@@ -8,6 +8,8 @@ function ExpenseBillForm({ user, editData }) {
     amount: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (editData) {
       const formattedDate = new Date(editData.date).toISOString().split("T")[0];
@@ -26,6 +28,7 @@ function ExpenseBillForm({ user, editData }) {
   }, [editData]);
 
   const saveExpense = async () => {
+    setIsLoading(true);
     try {
       const params = new URLSearchParams();
 
@@ -81,6 +84,8 @@ function ExpenseBillForm({ user, editData }) {
       console.log(err);
       
       alert(editData ? "Failed to Update Expense Bill" : "Failed to Add Expense Bill");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,8 +152,13 @@ function ExpenseBillForm({ user, editData }) {
             transition:.3s;
           }
 
-          .expense-btn:hover{
+          .expense-btn:hover:not(:disabled){
             transform:translateY(-2px);
+          }
+
+          .expense-btn:disabled{
+            opacity: 0.7;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -197,8 +207,12 @@ function ExpenseBillForm({ user, editData }) {
             }
           />
 
-          <button className="expense-btn" onClick={saveExpense}>
-            {editData ? "Update Expense Bill" : "Add Expense Bill"}
+          <button 
+            className="expense-btn" 
+            onClick={saveExpense}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : (editData ? "Update Expense Bill" : "Add Expense Bill")}
           </button>
         </div>
       </div>

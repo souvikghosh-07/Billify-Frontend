@@ -25,6 +25,8 @@ function Dashboard() {
     expenseAmount: 0,
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // Fetch data when dashboard loads
   useEffect(() => {
     if (page === "dashboard" && user?.userId) {
@@ -33,6 +35,7 @@ function Dashboard() {
   }, [page, user]);
 
   const fetchDashboardStats = async () => {
+    setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.append("userId", user.userId);
@@ -57,6 +60,8 @@ function Dashboard() {
       });
     } catch (error) {
       console.log("Error fetching dashboard stats:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -427,19 +432,19 @@ function Dashboard() {
               <div className="cards">
                 <div className="card">
                   <h3>Travel Bills Submitted</h3>
-                  <h2>{stats.travelCount}</h2>
+                  <h2>{isLoading ? "Loading..." : stats.travelCount}</h2>
                 </div>
                 <div className="card">
                   <h3>Expense Bills Submitted</h3>
-                  <h2>{stats.expenseCount}</h2>
+                  <h2>{isLoading ? "Loading..." : stats.expenseCount}</h2>
                 </div>
                 <div className="card">
                   <h3>Total Travel Cost</h3>
-                  <h2>₹{stats.travelAmount}</h2>
+                  <h2>{isLoading ? "Loading..." : `₹${stats.travelAmount}`}</h2>
                 </div>
                 <div className="card">
                   <h3>Total Expense Cost</h3>
-                  <h2>₹{stats.expenseAmount}</h2>
+                  <h2>{isLoading ? "Loading..." : `₹${stats.expenseAmount}`}</h2>
                 </div>
               </div>
             </>

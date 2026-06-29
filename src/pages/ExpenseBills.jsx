@@ -3,6 +3,7 @@ import axios from "axios";
 
 function ExpenseBills({ user, onEdit }) {
   const [bills, setBills] = useState([]);
+  const [deletingId, setDeletingId] = useState(null); // Track which bill is being deleted
 
   useEffect(() => {
     loadBills();
@@ -34,6 +35,8 @@ function ExpenseBills({ user, onEdit }) {
     const confirmDelete = window.confirm("Are you sure you want to delete this expense bill?");
     if (!confirmDelete) return;
 
+    setDeletingId(expenseBillId); // Disable buttons and show processing text
+
     try {
       await axios.delete("https://billify-backtend.onrender.com/deleteexpensebill", {
         params: { expenseBillId: expenseBillId }
@@ -45,6 +48,8 @@ function ExpenseBills({ user, onEdit }) {
     } catch (err) {
       console.log(err);
       alert("Failed to delete expense bill!");
+    } finally {
+      setDeletingId(null); // Re-enable buttons
     }
   };
 
@@ -153,7 +158,7 @@ function ExpenseBills({ user, onEdit }) {
             transition: 0.3s;
           }
 
-          .edit-btn:hover { background: #ca8a04; }
+          .edit-btn:hover:not(:disabled) { background: #ca8a04; }
 
           .delete-btn {
             background: #ef4444;
@@ -166,7 +171,12 @@ function ExpenseBills({ user, onEdit }) {
             transition: 0.3s;
           }
 
-          .delete-btn:hover { background: #dc2626; }
+          .delete-btn:hover:not(:disabled) { background: #dc2626; }
+
+          .edit-btn:disabled, .delete-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
 
           /* Mobile Responsiveness Rules */
           @media (max-width: 768px) {
@@ -219,14 +229,16 @@ function ExpenseBills({ user, onEdit }) {
                         <button 
                           className="edit-btn"
                           onClick={() => onEdit(bill)}
+                          disabled={deletingId !== null}
                         >
                           Edit
                         </button>
                         <button 
                           className="delete-btn"
                           onClick={() => handleDelete(bill.expenseBillId)}
+                          disabled={deletingId !== null}
                         >
-                          Delete
+                          {deletingId === bill.expenseBillId ? "Deleting..." : "Delete"}
                         </button>
                       </div>
                     </td>
