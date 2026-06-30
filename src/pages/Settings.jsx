@@ -5,6 +5,13 @@ function Settings({ user }) {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Change Password States
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+
   // Company Details State
   const [company, setCompany] = useState({
     companyDetailsId: "", 
@@ -14,7 +21,6 @@ function Settings({ user }) {
     phNo: "",
   });
 
-  // Page load howar somoy check korbe local storage e aager theke company details save ache kina
   useEffect(() => {
     const savedCompanyDetails = JSON.parse(localStorage.getItem("companyDetails"));
     if (savedCompanyDetails) {
@@ -22,7 +28,6 @@ function Settings({ user }) {
     }
   }, []);
 
-  // Handle Save / Update Company Details
   const handleSaveCompany = async () => {
     if (!company.companyId || !company.companyName) {
       alert("Company ID and Name are required!");
@@ -39,25 +44,21 @@ function Settings({ user }) {
       params.append("phNo", company.phNo);
 
       if (company.companyDetailsId) {
-        // --- 2ND TIME: UPDATE LOGIC (PUT) ---
         params.append("CompanyDetailsId", company.companyDetailsId);
         
         const response = await axios.put("https://billify-backtend.onrender.com/updatecompanydetails", params, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
 
-        // Backend je updated data return korbe seta abar save kore nilam
         setCompany(response.data);
         localStorage.setItem("companyDetails", JSON.stringify(response.data));
         
         alert("Company Details Updated Successfully!");
       } else {
-        // --- 1ST TIME: SAVE LOGIC (POST) ---
         const response = await axios.post("https://billify-backtend.onrender.com/addcompanydetails", params, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         });
 
-        // Backend je notun data (with generated ID) return korbe seta save kore nilam
         setCompany(response.data);
         localStorage.setItem("companyDetails", JSON.stringify(response.data));
         
@@ -68,6 +69,43 @@ function Settings({ user }) {
       alert("Failed to process request.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      alert("Please fill all password fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("New Password and Confirm Password do not match!");
+      return;
+    }
+
+    setIsChangingPwd(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.append("userId", user.userId);
+      params.append("oldPassword", oldPassword);
+      params.append("newPassword", newPassword);
+
+      const response = await axios.put("https://billify-backtend.onrender.com/passwordchange", params, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+
+      alert(response.data);
+      
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordFields(false);
+    } catch (err) {
+      console.log(err);
+      alert("Failed to change password.");
+    } finally {
+      setIsChangingPwd(false);
     }
   };
 
@@ -102,7 +140,6 @@ function Settings({ user }) {
             font-weight: 600;
           }
 
-          /* Tabs Styling */
           .tabs-wrapper {
             display: flex;
             gap: 15px;
@@ -135,14 +172,12 @@ function Settings({ user }) {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
           }
 
-          /* Content Styling */
           .tab-content {
             background: rgba(0, 0, 0, 0.2);
             padding: 30px;
             border-radius: 16px;
           }
 
-          /* Profile Section */
           .profile-header {
             display: flex;
             align-items: center;
@@ -176,7 +211,6 @@ function Settings({ user }) {
             font-size: 1.1rem;
           }
 
-          /* Form Styling */
           .form-input {
             width: 100%;
             padding: 15px;
@@ -207,12 +241,24 @@ function Settings({ user }) {
             transition: 0.3s;
           }
           
-          /* Update button specific color */
           .update-btn {
             background: linear-gradient(135deg, #eab308, #ca8a04);
           }
+          
+          .cancel-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            background: #ef4444;
+            transition: 0.3s;
+          }
 
-          .submit-btn:hover:not(:disabled) {
+          .submit-btn:hover:not(:disabled), .cancel-btn:hover:not(:disabled) {
             transform: translateY(-2px);
           }
 
@@ -221,7 +267,6 @@ function Settings({ user }) {
             cursor: not-allowed;
           }
 
-          /* Text Sections */
           .text-content p {
             line-height: 1.8;
             color: #cbd5e1;
@@ -240,10 +285,16 @@ function Settings({ user }) {
             border-radius: 12px;
           }
 
+          .btn-group {
+            display: flex;
+            gap: 15px;
+          }
+
           @media (max-width: 768px) {
             .settings-card { padding: 20px; }
             .tab-content { padding: 20px; }
             .profile-header { flex-direction: column; text-align: center; }
+            .btn-group { flex-direction: column; }
           }
         `}
       </style>
@@ -296,7 +347,63 @@ function Settings({ user }) {
                 <div className="profile-info">
                   <h3>Name: <span>{user?.userName || "N/A"}</span></h3>
                   <h3>Email Address: <span>{user?.email || "Not Provided"}</span></h3>
-                  
+                </div>
+
+                <div style={{ marginTop: "35px", paddingTop: "25px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  {!showPasswordFields ? (
+                    <button 
+                      className="submit-btn" 
+                      onClick={() => setShowPasswordFields(true)}
+                    >
+                      Change Password
+                    </button>
+                  ) : (
+                    <div>
+                      <h3 style={{ marginBottom: "20px", color: "#60a5fa" }}>Update Password</h3>
+                      <input
+                        className="form-input"
+                        type="password"
+                        placeholder="Old Password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                      />
+                      <input
+                        className="form-input"
+                        type="password"
+                        placeholder="New Password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                      <input
+                        className="form-input"
+                        type="password"
+                        placeholder="Confirm New Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                      <div className="btn-group">
+                        <button 
+                          className="submit-btn" 
+                          onClick={handleChangePassword}
+                          disabled={isChangingPwd}
+                        >
+                          {isChangingPwd ? "Updating..." : "Submit"}
+                        </button>
+                        <button 
+                          className="cancel-btn" 
+                          onClick={() => {
+                            setShowPasswordFields(false);
+                            setOldPassword("");
+                            setNewPassword("");
+                            setConfirmPassword("");
+                          }}
+                          disabled={isChangingPwd}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -306,8 +413,6 @@ function Settings({ user }) {
                 <h3 style={{ marginBottom: "20px", color: "#60a5fa" }}>
                   {company.companyDetailsId ? "Update Company Details" : "Add Company Details"}
                 </h3>
-                
-                {/* ID input box hide kore diyechi, user dekhte pabe na kintu backend a jabe */}
                 
                 <input
                   className="form-input"
