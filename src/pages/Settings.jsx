@@ -226,6 +226,7 @@ function Settings({ user }) {
             line-height: 1.8;
             color: #cbd5e1;
             margin-bottom: 15px;
+            font-size: 1rem;
           }
           
           .contact-item {
@@ -351,14 +352,22 @@ function Settings({ user }) {
               <div className="text-content">
                 <h3 style={{ marginBottom: "20px", color: "#60a5fa" }}>Privacy Policy</h3>
                 <p>
-                  Welcome to <strong>Billify</strong>! Your privacy is of paramount importance to us. This Privacy Policy outlines how we collect, use, and protect your personal and company data when you use our services.
+                  At <strong>Billify</strong>, we are committed to safeguarding your privacy. This Privacy Policy outlines our practices regarding the collection, storage, and protection of your personal and corporate information.
                 </p>
-                <p>
-                  <strong>Data Security:</strong> All travel and expense bills submitted through Billify are securely encrypted and stored. We do not share your financial records or company details with any third-party marketing agencies.
-                </p>
-                <p>
-                  <strong>User Consent:</strong> By using our platform, you agree to the responsible management of your digital reports. You have full rights to view, download, or delete your generated bills at any given time.
-                </p>
+
+                <div style={{ marginTop: "25px" }}>
+                  <h4 style={{ color: "#f8fafc", marginBottom: "8px", fontSize: "1.1rem" }}>1. Information We Collect</h4>
+                  <p>We collect essential data required to provide our services efficiently, including user profile details, company settings, and submitted travel or expense records.</p>
+                  
+                  <h4 style={{ color: "#f8fafc", margin: "20px 0 8px 0", fontSize: "1.1rem" }}>2. Data Security & Storage</h4>
+                  <p>All financial records and bills processed through Billify are secured using industry-standard encryption. We maintain strict access controls to ensure your corporate data remains confidential and is protected against unauthorized access.</p>
+                  
+                  <h4 style={{ color: "#f8fafc", margin: "20px 0 8px 0", fontSize: "1.1rem" }}>3. Third-Party Disclosure</h4>
+                  <p>Your trust is our top priority. Billify guarantees that your financial data, expense claims, and company details are never sold, rented, or shared with third-party marketing agencies under any circumstances.</p>
+                  
+                  <h4 style={{ color: "#f8fafc", margin: "20px 0 8px 0", fontSize: "1.1rem" }}>4. Your Rights & Control</h4>
+                  <p>You retain full ownership of your data. As a user, you have complete authority to access, modify, download, or permanently delete your generated reports and profile information at any time directly through the platform.</p>
+                </div>
               </div>
             )}
 
@@ -378,7 +387,7 @@ function Settings({ user }) {
                   <span style={{ fontSize: "24px" }}>📞</span>
                   <div>
                     <strong style={{ display: "block", color: "#94a3b8" }}>Phone (Toll-Free)</strong>
-                    +91 1800-123-4567
+                    +91 6296191723
                   </div>
                 </div>
 
@@ -386,7 +395,7 @@ function Settings({ user }) {
                   <span style={{ fontSize: "24px" }}>📱</span>
                   <div>
                     <strong style={{ display: "block", color: "#94a3b8" }}>WhatsApp Helpline</strong>
-                    +91 98765-43210
+                    +91 6296191723
                   </div>
                 </div>
               </div>

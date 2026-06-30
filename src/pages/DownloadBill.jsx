@@ -9,6 +9,9 @@ function DownloadBill({ user }) {
   const [dateTo, setDateTo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Ajker date ta ber kore YYYY-MM-DD format e anar jonno (Future date disable korar jonyo)
+  const today = new Date().toISOString().split("T")[0];
+
   const downloadBill = async () => {
     if (billType === "") {
       alert("Select Bill Type");
@@ -24,7 +27,7 @@ function DownloadBill({ user }) {
 
     try {
       const params = new URLSearchParams();
-      params.append("userId", user.userId); // Backend e pathanor jonyo id tai rakhlam
+      params.append("userId", user.userId);
       params.append("dateFrom", dateFrom);
       params.append("dateTo", dateTo);
 
@@ -39,7 +42,7 @@ function DownloadBill({ user }) {
         },
       });
 
-      const bills = response.data;
+      let bills = response.data;
 
       if (bills.length === 0) {
         alert("No Bills Found in this date range");
@@ -47,13 +50,17 @@ function DownloadBill({ user }) {
         return;
       }
 
+      // --- SORTING LOGIC ---
+      // Date onujayi oldest to newest sort kora hochhe
+      bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+
       // Calculate Total Amount
       const totalAmount = bills.reduce(
         (sum, bill) => sum + Number(bill.amount),
         0
       );
 
-      // Date Formatter Helper (Formats like: 23 Jun, 2026)
+      // Date Formatter Helper
       const formatPrettyDate = (d) => {
         return new Date(d).toLocaleDateString("en-GB", {
           day: "2-digit",
@@ -62,117 +69,143 @@ function DownloadBill({ user }) {
         });
       };
 
-      // --- MODERN PDF STYLING STARTS HERE ---
+      // --- FETCH COMPANY DETAILS FROM LOCAL STORAGE ---
+      const companyDataStr = localStorage.getItem("companyDetails");
+      const company = companyDataStr ? JSON.parse(companyDataStr) : null;
+
+      // ==========================================
+      // --- PREMIUM MODERN PDF GENERATION ---
+      // ==========================================
       const pdf = new jsPDF();
 
-      // 1. Top Header Background (Dark Slate color)
-      pdf.setFillColor(30, 41, 59);
-      pdf.rect(0, 0, 210, 32, "F");
+      // 1. TOP HEADER BANNER (Dark Blue)
+      pdf.setFillColor(15, 23, 42); // Very dark slate/blue
+      pdf.rect(0, 0, 210, 35, "F");
 
-      // 2. Main Title (White text inside the header)
-      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
       pdf.setFontSize(22);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(
-        billType === "travel"
-          ? "Travel Expense Report"
-          : "General Expense Report",
-        14,
-        21
-      );
+      pdf.setTextColor(255, 255, 255);
+      
+      const reportTitle = billType === "travel" ? "TRAVEL EXPENSE REPORT" : "GENERAL EXPENSE REPORT";
+      pdf.text(reportTitle, 105, 22, { align: "center" });
 
-      // 3. User Details & Dates 
+      // 2. COLORED METADATA CARDS (Company & Employee)
+      // Left Card: Company Details
+      pdf.setFillColor(241, 245, 249); // Light Grey-Blue background
+      pdf.roundedRect(14, 42, 88, 35, 3, 3, "F");
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(59, 130, 246); // Blue Accent
+      pdf.text("COMPANY DETAILS", 18, 50);
+
       pdf.setFontSize(11);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text(company?.companyName || "N/A", 18, 57);
       
-      // Left side details (Name & Period)
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("Employee Name:", 14, 45);
-      pdf.text("Reporting Period:", 14, 52);
-      
+      pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(30, 30, 30);
-      pdf.text(`${user.userName || "N/A"}`, 48, 45);
-      pdf.text(`${formatPrettyDate(dateFrom)}  To  ${formatPrettyDate(dateTo)}`, 48, 52);
-
-      // Right side details (Generated On)
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("Generated On:", 140, 45);
+      pdf.setTextColor(100, 100, 100);
       
+      // Auto-wrap address if it's too long
+      const addressLines = pdf.splitTextToSize(company?.address || "Address not provided", 80);
+      pdf.text(addressLines, 18, 63);
+      pdf.text(`Ph: ${company?.phNo || "N/A"}`, 18, 63 + (addressLines.length * 4));
+
+
+      // Right Card: Employee & Bill Details
+      pdf.setFillColor(241, 245, 249);
+      pdf.roundedRect(108, 42, 88, 35, 3, 3, "F");
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(59, 130, 246); // Blue Accent
+      pdf.text("EMPLOYEE & REPORT DETAILS", 112, 50);
+
+      pdf.setFontSize(11);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text(user?.userName || "N/A", 112, 57);
+
+      pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(30, 30, 30);
-      pdf.text(`${formatPrettyDate(new Date())}`, 170, 45);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Period: ${formatPrettyDate(dateFrom)} to ${formatPrettyDate(dateTo)}`, 112, 63);
+      pdf.text(`Generated: ${formatPrettyDate(new Date())}`, 112, 68);
+      pdf.text(`Status: Submitted`, 112, 73);
 
-      // Divider Line
-      pdf.setDrawColor(220, 220, 220);
-      pdf.line(14, 58, 196, 58);
+      // 3. TABLE DATA PROCESSING (WITH DATE GROUPING)
+      let lastDate = "";
+      const tableBody = bills.map((bill) => {
+        const formattedDate = formatPrettyDate(bill.date);
+        
+        // Date Grouping Logic: Same date bar bar print hobe na
+        let displayDate = formattedDate;
+        if (formattedDate === lastDate) {
+          displayDate = ""; // Faka kore dilam jodi aager datar sathe same hoy
+        } else {
+          lastDate = formattedDate;
+        }
 
-      // 4. Modern Table Styling Configuration
-      const tableStyles = {
-        startY: 65,
+        const particulars = billType === "travel" 
+          ? `Route: ${bill.fromLocation} to ${bill.toLocation}`
+          : `Reason: ${bill.reason}`;
+
+        return [
+          displayDate,
+          particulars,
+          `Rs. ${bill.amount}`
+        ];
+      });
+
+      // 4. AUTO-TABLE GENERATION
+      autoTable(pdf, {
+        startY: 85,
         theme: "grid",
+        head: [["Date", "Particulars", "Amount"]],
+        body: tableBody,
         headStyles: {
-          fillColor: [59, 130, 246], // Bright Blue Header
+          fillColor: [59, 130, 246], // Modern Blue Header
           textColor: 255,
           fontStyle: "bold",
-          halign: "center",
+          halign: "left",
         },
         bodyStyles: {
-          textColor: 50,
-          halign: "center",
+          textColor: [50, 50, 50],
+          fontSize: 10,
           valign: "middle",
         },
-        alternateRowStyles: {
-          fillColor: [248, 250, 252], // Light grey-blue alternate rows
+        columnStyles: {
+          0: { cellWidth: 40, fontStyle: "bold", textColor: [30, 41, 59] }, // Date column
+          1: { cellWidth: "auto" }, // Particulars column
+          2: { cellWidth: 40, fontStyle: "bold", halign: "right" }, // Amount column
         },
-        margin: { top: 60, bottom: 20 },
-      };
+        alternateRowStyles: {
+          fillColor: [250, 252, 255], // Very slight blue tint for alternate rows
+        },
+        styles: {
+          cellPadding: 6,
+          lineColor: [226, 232, 240], // Light grey borders
+          lineWidth: 0.1,
+        }
+      });
 
-      // 5. Generate Table Data
-      if (billType === "travel") {
-        autoTable(pdf, {
-          ...tableStyles,
-          head: [["Date", "From Location", "To Location", "Amount"]],
-          body: bills.map((bill) => [
-            formatPrettyDate(bill.date),
-            bill.fromLocation,
-            bill.toLocation,
-            "Rs. " + bill.amount,
-          ]),
-        });
-      } else {
-        autoTable(pdf, {
-          ...tableStyles,
-          head: [["Date", "Expense Reason", "Amount"]],
-          body: bills.map((bill) => [
-            formatPrettyDate(bill.date),
-            bill.reason,
-            "Rs. " + bill.amount,
-          ]),
-        });
-      }
-
-      // 6. Total Amount Styling at the End
-      const finalY = pdf.lastAutoTable.finalY; // Gets the Y position where table ends
+      // 5. TOTAL AMOUNT SECTION
+      const finalY = pdf.lastAutoTable.finalY;
       
-      // Total Box Background
-      pdf.setFillColor(241, 245, 249); 
-      pdf.rect(120, finalY + 10, 76, 14, "F"); 
+      pdf.setFillColor(241, 245, 249); // Same light grey-blue background
+      pdf.rect(130, finalY + 5, 66, 12, "F"); 
       
-      // Total Text Label
-      pdf.setFontSize(12);
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(71, 85, 105);
-      pdf.text("Total Amount:", 125, finalY + 19);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text("Total Amount:", 135, finalY + 13);
       
-      // Total Amount Value (Green color for emphasis)
-      pdf.setTextColor(22, 163, 74); 
-      pdf.text(`Rs. ${totalAmount}`, 190, finalY + 19, { align: "right" });
+      pdf.setTextColor(22, 163, 74); // Green color for total money
+      pdf.text(`Rs. ${totalAmount}`, 190, finalY + 13, { align: "right" });
 
-      // 7. Save PDF
+      // 6. SAVE PDF
       pdf.save(
-        billType === "travel" ? "Travel_Report.pdf" : "Expense_Report.pdf"
+        billType === "travel" ? "Travel_Claim_Report.pdf" : "Expense_Claim_Report.pdf"
       );
     } catch (err) {
       console.log(err);
@@ -318,6 +351,7 @@ function DownloadBill({ user }) {
           <input
             className="download-input"
             type="date"
+            max={today}
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
@@ -325,6 +359,7 @@ function DownloadBill({ user }) {
           <input
             className="download-input"
             type="date"
+            max={today}
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
@@ -334,7 +369,7 @@ function DownloadBill({ user }) {
             onClick={downloadBill}
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : "Download Professional PDF"}
+            {isLoading ? "Processing..." : "Download Claim Report"}
           </button>
         </div>
       </div>

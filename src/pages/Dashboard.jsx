@@ -8,7 +8,6 @@ import TravelBills from "./TravelBills";
 import ExpenseBills from "./ExpenseBills";
 
 function Dashboard() {
-  // We use useMemo or just extract the primitive ID to avoid infinite loops
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
   const userId = user?.userId;
@@ -29,7 +28,6 @@ function Dashboard() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // FIX: Using 'userId' (a primitive) instead of 'user' (an object) stops the infinite loop!
   useEffect(() => {
     if (page === "dashboard" && userId) {
       fetchDashboardStats();
@@ -92,6 +90,11 @@ function Dashboard() {
       window.location.href = "/"; 
     }
   };
+
+  // Helper to get today's date formatted
+  const todayDate = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
 
   return (
     <>
@@ -196,65 +199,116 @@ function Dashboard() {
           }
 
           .logout-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
             padding: 10px 20px;
             border-radius: 10px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
           }
 
           .logout-btn:hover {
-            background: #dc2626;
+            background: #ef4444;
+            color: white;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
           }
 
-          .welcome-card{
-            padding:30px;
-            border-radius:24px;
-            background:rgba(255,255,255,0.05);
-            backdrop-filter:blur(20px);
-            border:1px solid rgba(255,255,255,0.08);
-            margin-bottom:30px;
+          /* Professional Welcome Banner */
+          .welcome-banner {
+            padding: 35px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
           }
 
-          .welcome-card h1{
-            margin-bottom:10px;
+          .welcome-banner h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: -webkit-linear-gradient(0deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
           }
 
-          .welcome-card p{
-            color:#94a3b8;
+          .welcome-banner p {
+            color: #94a3b8;
+            font-size: 1.1rem;
           }
 
+          .date-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+          }
+
+          /* Professional Cards Grid */
           .cards{
             display:grid;
-            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-            gap:20px;
+            grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+            gap:24px;
           }
 
           .card{
-            padding:25px;
+            padding:30px;
             border-radius:20px;
-            background:rgba(255,255,255,0.05);
-            backdrop-filter:blur(20px);
-            border:1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(96, 165, 250, 0.3);
+          }
+
+          .card-icon {
+            font-size: 30px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.05);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
           }
 
           .card h3{
             color:#94a3b8;
             margin-bottom:10px;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
           }
 
           .card h2{
-            color:#60a5fa;
-            font-size: 28px;
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+          }
+
+          .card .highlight-amount {
+            color: #4ade80; /* Nice soft green for money */
           }
 
           .overlay {
@@ -266,6 +320,7 @@ function Dashboard() {
             backdrop-filter: blur(4px);
           }
 
+          /* --- Mobile Responsiveness Fixes --- */
           @media(max-width:768px){
             .dashboard{
               flex-direction:column;
@@ -290,6 +345,19 @@ function Dashboard() {
             }
             .overlay.show {
               display: block;
+            }
+            
+            /* FIXED: Force 1 column on mobile to stop text squishing */
+            .cards {
+              grid-template-columns: 1fr;
+            }
+            .welcome-banner {
+              padding: 25px;
+              flex-direction: column;
+              align-items: flex-start;
+            }
+            .welcome-banner h1 {
+              font-size: 1.8rem;
             }
           }
         `}
@@ -330,14 +398,14 @@ function Dashboard() {
                 <button
                   className={page === "travelBills" ? "active-btn" : ""}
                   onClick={() => handleNavigation("travelBills")}
-                  style={{ marginLeft: "20px", background: page === "travelBills" ? "" : "#374151" }}
+                  style={{ marginLeft: "20px", background: page === "travelBills" ? "" : "rgba(255,255,255,0.05)" }}
                 >
                   ✈️ Travel Bills
                 </button>
                 <button
                   className={page === "expenseBills" ? "active-btn" : ""}
                   onClick={() => handleNavigation("expenseBills")}
-                  style={{ marginLeft: "20px", background: page === "expenseBills" ? "" : "#374151" }}
+                  style={{ marginLeft: "20px", background: page === "expenseBills" ? "" : "rgba(255,255,255,0.05)" }}
                 >
                   💰 Expense Bills
                 </button>
@@ -360,27 +428,45 @@ function Dashboard() {
 
           {page === "dashboard" && (
             <>
-              <div className="welcome-card">
-                <h1>Welcome, {user?.userName}</h1>
-                <p>Manage your travel bills, expenses and reports from one place.</p>
+              {/* Premium Welcome Banner */}
+              <div className="welcome-banner">
+                <div>
+                  <h1>Welcome back, {user?.userName?.split(" ")[0] || "User"} 👋</h1>
+                  <p>Here is your financial overview and pending reports.</p>
+                </div>
+                <div className="date-badge">
+                  📅 {todayDate}
+                </div>
               </div>
 
+              {/* 4 Professional Dashboard Cards */}
               <div className="cards">
                 <div className="card">
-                  <h3>Travel Bills Submitted</h3>
-                  <h2>{isLoading ? "Loading..." : stats.travelCount}</h2>
+                  <div className="card-icon">✈️</div>
+                  <h3>Travel Bills</h3>
+                  <h2>{isLoading ? "..." : stats.travelCount}</h2>
                 </div>
+                
                 <div className="card">
-                  <h3>Expense Bills Submitted</h3>
-                  <h2>{isLoading ? "Loading..." : stats.expenseCount}</h2>
+                  <div className="card-icon">🧾</div>
+                  <h3>Expense Bills</h3>
+                  <h2>{isLoading ? "..." : stats.expenseCount}</h2>
                 </div>
+                
                 <div className="card">
+                  <div className="card-icon">💳</div>
                   <h3>Total Travel Cost</h3>
-                  <h2>{isLoading ? "Loading..." : `₹${stats.travelAmount}`}</h2>
+                  <h2 className="highlight-amount">
+                    {isLoading ? "..." : `₹${Number(stats.travelAmount || 0).toLocaleString('en-IN')}`}
+                  </h2>
                 </div>
+                
                 <div className="card">
+                  <div className="card-icon">💰</div>
                   <h3>Total Expense Cost</h3>
-                  <h2>{isLoading ? "Loading..." : `₹${stats.expenseAmount}`}</h2>
+                  <h2 className="highlight-amount">
+                    {isLoading ? "..." : `₹${Number(stats.expenseAmount || 0).toLocaleString('en-IN')}`}
+                  </h2>
                 </div>
               </div>
             </>
