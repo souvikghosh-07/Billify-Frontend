@@ -235,6 +235,7 @@ function Dashboard() {
           .welcome-banner h1 {
             font-size: 2.2rem;
             margin-bottom: 8px;
+            padding-bottom: 10px;
             background: -webkit-linear-gradient(0deg, #fff, #cbd5e1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -423,7 +424,7 @@ function Dashboard() {
 
         <div className="content">
           <div className="top-bar">
-            <button className="logout-btn" onClick={handleLogout}>Logout 🚪</button>
+            <button className="logout-btn" onClick={handleLogout}>Logout </button>
           </div>
 
           {page === "dashboard" && (
